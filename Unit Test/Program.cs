@@ -1,28 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Unit_Test {
     class Program {
         [DllImport("CLibrary.dll")]
-        private extern static IntPtr capture(int reset);
+        private extern static IntPtr capture(double resolution);
+
+        [DllImport("CLibrary.dll")]
+        private extern static IntPtr xor(IntPtr hBitMap);
+
+        [DllImport("CLibrary.dll")]
+        private extern static void reset(IntPtr hBitMap);
 
         [DllImport("CLibrary.dll")]
         private extern static IntPtr cal(IntPtr hBitMap);
 
-        [DllImport("CLibrary.dll")]
-        private extern static IntPtr img(byte[] data,int size);
-
         static void Main(string[] args) {
-            Image.FromHbitmap(cal(new Bitmap(@"D:\0.bmp").GetHbitmap()));
-            Image.FromHbitmap(cal(new Bitmap(@"D:\1.bmp").GetHbitmap()));
-            Console.ReadKey();
+            IntPtr p = capture(0.5);
+            Bitmap bmp = Image.FromHbitmap(p);
+            bmp.Save("D:\\a.bmp");
+            //for (int i = 0; i < 1000; i++) {
+            //    IntPtr p = capture();
+            //    Bitmap bmp = Image.FromHbitmap(p);
+            //    xor(p);
+            //    bmp.Dispose();
+            //    Console.WriteLine(i);
+            //}
+            //Console.ReadKey();
+        }
+
+        private static double lastReso = -1;
+        public static byte[] Capture(double resolution) {
+            if (lastReso == -1) {
+                lastReso = resolution;
+            }
+            Bitmap bmp = Image.FromHbitmap(capture(1));
+            if (resolution != 1) {
+                bmp = new Bitmap(bmp, Convert.ToInt32(bmp.Width * resolution), Convert.ToInt32(bmp.Height * resolution));
+            }
+            if (lastReso != resolution) {
+                reset(bmp.GetHbitmap());
+                lastReso = resolution;
+            } else {
+                xor(bmp.GetHbitmap());
+            }
+            MemoryStream stream = new MemoryStream();
+            bmp.Save(stream, ImageFormat.Bmp);
+            bmp.Dispose();
+            byte[] data = stream.GetBuffer();
+            stream.Close();
+            return data;
         }
 
         public static byte[] Compress(byte[] inputBytes) {

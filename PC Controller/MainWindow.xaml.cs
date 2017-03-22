@@ -4,13 +4,6 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using System.Threading;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Collections.Generic;
 
 namespace PC_Controller {
     /// <summary>
@@ -144,7 +137,6 @@ namespace PC_Controller {
             while (true) {
                 byte[] data = ImageCore.Compress(ImageCore.Capture(resolution));
                 writer.WriteLine(Convert.ToBase64String(data));
-                GC.Collect();
             }
         }
         
